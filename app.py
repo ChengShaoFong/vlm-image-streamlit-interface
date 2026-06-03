@@ -54,7 +54,7 @@ def build_prompt(question: str) -> list[dict]:
 def infer(processor, model, image: Image.Image, question: str) -> str:
     import torch
 
-    # 壓小圖片，降低視覺 token 數量，減少顯存壓力。
+    # 縮小圖片，降低視覺 token 數量，減少顯存壓力。
     image = image.copy()
     image.thumbnail((1280, 1280))
 
@@ -182,9 +182,45 @@ with top_right:
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
-    result_col, preview_col = st.columns([1.3, 0.9], gap="large")
+    left_col, right_col = st.columns([1.3, 0.9], gap="large")
 
-    with preview_col:
+    with left_col:
+        st.markdown(
+            """
+            <div class="panel">
+                <strong>提示</strong>
+                <ul style="margin: 0.6rem 0 0 1.4rem; line-height: 1.7;">
+
+                    <li>若遇到 GPU 記憶體不足，請先改小圖片或關閉其他 GPU 程式。</li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.write("")
+        st.write("")
+
+        if run:
+            with st.spinner("正在載入模型並推理..."):
+                try:
+                    processor, model = load_model(model_name)
+                    answer = infer(processor, model, image, question.strip())
+                    st.success("完成")
+                    st.markdown("### 模型回答")
+                    st.write(answer)
+                except Exception as exc:
+                    message = str(exc).lower()
+                    if "out of memory" in message or "cuda" in message:
+                        st.error(
+                            "GPU 記憶體不足。這張圖片或目前設定對顯卡來說太吃資源。"
+                            "請改用更小的圖片、先關閉其他 GPU 程式，或改用更小的 VLM / 4-bit 量化。"
+                        )
+                    else:
+                        st.error("推理失敗。可能原因包含模型下載、記憶體，或 transformers 版本問題。")
+                    st.exception(exc)
+
+    with right_col:
         st.image(image, caption="預覽", use_container_width=True)
         name, info = image_summary(image, uploaded_file.name)
         st.markdown(
@@ -196,38 +232,6 @@ if uploaded_file:
             """,
             unsafe_allow_html=True,
         )
-
-    with result_col:
-        st.markdown(
-            """
-            <div class="panel">
-                <strong>提示</strong>
-                <ul style="margin: 0.6rem 0 0 1.4rem; line-height: 1.7;">
-                    <li>若遇到 GPU 記憶體不足，請先改小圖片或關閉其他 GPU 程式。</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    if run:
-        with st.spinner("正在載入模型並推理..."):
-            try:
-                processor, model = load_model(model_name)
-                answer = infer(processor, model, image, question.strip())
-                st.success("完成")
-                st.markdown("### 模型回答")
-                st.write(answer)
-            except Exception as exc:
-                message = str(exc).lower()
-                if "out of memory" in message or "cuda" in message:
-                    st.error(
-                        "GPU 記憶體不足。這張圖片或目前設定對顯卡來說太吃資源。"
-                        "請改用更小的圖片、先關閉其他 GPU 程式，或改用更小的 VLM / 4-bit 量化。"
-                    )
-                else:
-                    st.error("推理失敗。可能原因包含模型下載、記憶體，或 transformers 版本問題。")
-                st.exception(exc)
 else:
     st.info("請先上傳圖片開始。")
 
