@@ -1,44 +1,45 @@
-# Local VLM Demo
+# 本地 VLM Demo
 
-This project runs a local vision-language model with Streamlit.
+這是一個使用 `Qwen/Qwen2-VL-2B-Instruct` 的本地視覺語言模型範例。
 
-## Model
+## 功能
+
+- 上傳圖片
+- 輸入問題
+- 在本機 GPU 上直接推理
+
+## 模型
 
 - `Qwen/Qwen2-VL-2B-Instruct`
-- Hugging Face model card: https://huggingface.co/Qwen/Qwen2-VL-2B-Instruct
-- License: Apache 2.0
+- Hugging Face 模型頁：https://huggingface.co/Qwen/Qwen2-VL-2B-Instruct
+- 授權：Apache 2.0
 
-## Features
-
-- Upload an image
-- Ask a question about the image
-- Run inference locally without an API key
-
-## Install
+## 安裝
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If `torch` installation fails, install the correct wheel for your platform from the official PyTorch site first:
+如果 `torch` 安裝失敗，請先到官方網站安裝對應你平台的版本：
 
 https://pytorch.org/get-started/locally/
 
-## Run
+## 執行
 
 ```bash
 streamlit run app.py
 ```
 
-## First Run
+## 第一次執行
 
-- The first launch downloads the model from Hugging Face
-- Later launches use the local cache
-- GPU is recommended, but CPU fallback is possible and will be slower
+- 第一次會從 Hugging Face 下載模型權重
+- 之後會使用本機快取
+- 建議使用 GPU
+- 如果遇到顯存不足，請先改小圖片或關閉其他 GPU 程式
 
-## Change the Model
+## 切換模型
 
-You can override the default model with `VLM_MODEL`:
+可以透過 `VLM_MODEL` 環境變數指定模型：
 
 ```powershell
 $env:VLM_MODEL="Qwen/Qwen2-VL-2B-Instruct"
